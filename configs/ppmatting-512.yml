@@ -41,4 +41,4 @@ val_dataset:
 model:
   backbone:
     type: HRNet_W18
-    pretrained: https://bj.bcebos.com/paddleseg/dygraph/hrnet_w18_ssld.tar.gz
+    # pretrained: https://bj.bcebos.com/paddleseg/dygraph/hrnet_w18_ssld.tar.gz

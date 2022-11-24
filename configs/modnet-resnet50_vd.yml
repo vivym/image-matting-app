@@ -2,4 +2,4 @@ _base_: modnet-mobilenetv2.yml
 model:
   backbone:
     type: ResNet50_vd
-    pretrained: https://bj.bcebos.com/paddleseg/dygraph/resnet50_vd_ssld_v2.tar.gz
+    # pretrained: https://bj.bcebos.com/paddleseg/dygraph/resnet50_vd_ssld_v2.tar.gz

@@ -63,7 +63,7 @@ class Compose:
 
 @manager.TRANSFORMS.add_component
 class LoadImages:
-    def __init__(self, to_rgb=True):
+    def __init__(self, to_rgb=False):
         self.to_rgb = to_rgb
 
     def __call__(self, data):

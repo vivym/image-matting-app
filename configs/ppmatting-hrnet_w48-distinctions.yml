@@ -40,7 +40,7 @@ model:
   type: PPMatting
   backbone:
     type: HRNet_W48
-    pretrained: https://bj.bcebos.com/paddleseg/dygraph/hrnet_w48_ssld.tar.gz
+    # pretrained: https://bj.bcebos.com/paddleseg/dygraph/hrnet_w48_ssld.tar.gz
   pretrained: Null
 
 optimizer:
