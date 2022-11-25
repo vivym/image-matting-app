@@ -1,8 +1,10 @@
 from hashlib import sha1
+from pathlib import Path
 
 import cv2
 import gradio as gr
 import numpy as np
+from PIL import Image
 
 from paddleseg.cvlibs import manager, Config
 from paddleseg.utils import load_entire_model
@@ -46,10 +48,10 @@ def image_matting(
     if cache_key == last_result["cache_key"] and algorithm == last_result["algorithm"]:
         alpha = last_result["alpha"]
     else:
+        cfg = Config(f"configs/{algorithm}.yml")
         if model_dict[algorithm] is not None:
             model = model_dict[algorithm]
         else:
-            cfg = Config(f"configs/{algorithm}.yml")
             model = cfg.model
             load_entire_model(model, f"models/{algorithm}.pdparams")
             model.eval()
@@ -68,7 +70,7 @@ def image_matting(
 
     alpha = (alpha * 255).astype(np.uint8)
     kernel = np.ones((5, 5), np.uint8)
-    if morph_op == "膨胀":
+    if morph_op == "dilate":
         alpha = cv2.dilate(alpha, kernel, iterations=int(morph_op_factor))
     else:
         alpha = cv2.erode(alpha, kernel, iterations=int(morph_op_factor))
@@ -77,9 +79,9 @@ def image_matting(
     image = (image / 255.0).astype("float32")
     fg = estimate_foreground_ml(image, alpha)
 
-    if result_type == "去掉背景":
+    if result_type == "Remove BG":
         result = np.concatenate((fg, alpha[:, :, None]), axis=-1)
-    elif result_type == "替换背景":
+    elif result_type == "Replace BG":
         bg_r = int(bg_color[1:3], base=16)
         bg_g = int(bg_color[3:5], base=16)
         bg_b = int(bg_color[5:7], base=16)
@@ -98,8 +100,12 @@ def image_matting(
 
 
 def main():
+    images_path = Path("images")
+    if not images_path.exists():
+        images_path.mkdir()
+
     with gr.Blocks() as app:
-        gr.Markdown("智能抠图")
+        gr.Markdown("Image Matting Powered By AI")
 
         with gr.Row(variant="panel"):
             image_input = gr.Image()
@@ -107,40 +113,40 @@ def main():
 
         with gr.Row(variant="panel"):
             result_type = gr.Radio(
-                label="模式",
+                label="Mode",
                 show_label=True,
                 choices=[
-                    "去掉背景",
-                    "替换背景",
-                    "生成Mask",
+                    "Remove BG",
+                    "Replace BG",
+                    "Generate Mask",
                 ],
-                value="去掉背景",
+                value="Remove BG",
             )
             bg_color = gr.ColorPicker(
-                label="背景色",
+                label="BG Color",
                 show_label=True,
                 value="#000000",
             )
             algorithm = gr.Dropdown(
-                label="算法",
+                label="Algorithm",
                 show_label=True,
                 choices=model_names,
-                value="modnet-mobilenetv2"
+                value="modnet-hrnet_w18"
             )
 
         with gr.Row(variant="panel"):
             morph_op = gr.Radio(
-                label="后处理",
+                label="Post-process",
                 show_label=True,
                 choices=[
-                    "膨胀",
-                    "腐蚀",
+                    "Dilate",
+                    "Erode",
                 ],
-                value="膨胀",
+                value="Dilate",
             )
 
             morph_op_factor = gr.Slider(
-                label="程度",
+                label="Factor",
                 show_label=True,
                 minimum=0,
                 maximum=20,
